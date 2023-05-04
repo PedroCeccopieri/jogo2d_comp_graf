@@ -57,77 +57,6 @@ void reshape(int w, int h) {
 
 void keyboard (unsigned char key, int x, int y) {
 	switch (key) {
-
-		case 'a':
-			character.moveRightForearm(5,0,0);
-			character.moveLeftForearm(5,0,0);
-			character.moveKnees(5,0,0);
-			break;
-		case 'A':
-			character.moveRightForearm(-5,0,0);
-			character.moveLeftForearm(-5,0,0);
-			character.moveKnees(-5,0,0);
-			break;
-		case 's':
-			character.moveRightForearm(0,5,0);
-			character.moveLeftForearm(0,5,0);
-			character.moveKnees(0,5,0);
-			break;
-		case 'S':
-			character.moveRightForearm(0,-5,0);
-			character.moveLeftForearm(0,-5,0);
-			character.moveKnees(0,-5,0);
-			break;
-		case 'd':
-			character.moveRightForearm(0,0,5);
-			character.moveLeftForearm(0,0,5);
-			character.moveKnees(0,0,5);
-			break;
-		case 'D':
-			character.moveRightForearm(0,0,-5);
-			character.moveLeftForearm(0,0,-5);
-			character.moveKnees(0,0,-5);
-			break;
-
-		case 'q':
-			character.moveNeck(5,0,0);
-			break;
-		case 'Q':
-			character.moveNeck(-5,0,0);
-			break;
-		case 'w':
-			character.moveNeck(0,5,0);
-			break;
-		case 'W':
-			character.moveNeck(0,-5,0);
-			break;
-		case 'e':
-			character.moveNeck(0,0,5);
-			break;
-		case 'E':
-			character.moveNeck(0,0,-5);
-			break;
-
-		case 'r':
-			character.moveHead(5,0,0);
-			break;
-		case 'R':
-			character.moveHead(-5,0,0);
-			break;
-		case 't':
-			character.moveHead(0,5,0);
-			break;
-		case 'T':
-			character.moveHead(0,-5,0);
-			break;
-		case 'y':
-			character.moveHead(0,0,5);
-			break;
-		case 'Y':
-			character.moveHead(0,0,-5);
-			break;
-
-
 		case 'p':
 			character.moveAxis(5,0,0);
 			break;
@@ -148,10 +77,24 @@ void keyboard (unsigned char key, int x, int y) {
 		case 'I':
 			character.moveAxis(0,0,-5);
 			break;
-
-		case ';':
-			character.reset();
-
+		case '0':
+			character.setState(0);
+			break;
+		case '1':
+			character.setState(1);
+			break;
+		case '2':
+			character.setState(2);
+			break;
+		case '3':
+			character.setState(3);
+			break;
+		case '4':
+			character.setState(4);
+			break;
+		case '5':
+			character.setState(5);
+			break;
 	}
 }
 
@@ -170,7 +113,7 @@ void nextFrame(int f) {
 	character.animate();
 	
 	glutPostRedisplay();
-    glutTimerFunc(20,nextFrame,0);
+    glutTimerFunc(16,nextFrame,0);
 }
 
 int main(int argc, char** argv) {
