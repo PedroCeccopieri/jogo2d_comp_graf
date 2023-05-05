@@ -32,6 +32,10 @@ class Character {
             
         }
 
+        int getState() {
+            return state;
+        }
+
         void moveNeck(int dx, int dy, int dz) {
             neckx += dx;
             necky += dy;
@@ -155,6 +159,15 @@ class Character {
                     lforearmx = 45;
                     kneesx = 45;
                     jump += (da % 2) * 0.01;
+                    break;
+                case 6: // jumping
+                    legsx = abs((animation + 50)/2 * 80.0/50);
+                    rarmx = -80 - animation;
+                    rforearmx = 45;
+                    larmx -= da;
+                    lforearmx = 45;
+                    kneesx = 45;
+                    jump = abs((animation + 50)/2 * 3.0/50);
                     break;
             }
         }

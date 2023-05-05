@@ -95,6 +95,9 @@ void keyboard (unsigned char key, int x, int y) {
 		case '5':
 			character.setState(5);
 			break;
+		case '6':
+			character.setState(6);
+			break;
 	}
 }
 
