@@ -173,12 +173,17 @@ class Character {
         }
 
         void draw() {
-            glPushMatrix(); // personagem {
 
-            glTranslatef(0,jump,0);
-            glRotatef(axisz,0,0,1); // rotação corpo x
+            
+            glPushMatrix(); // personagem {
+            
+            glScalef(0.5,0.5,0.5);
+            glTranslatef(0,0,10);
+            
+            glTranslatef(0,jump*5,0);
+            glRotatef(axisz,0,0,1); // rotação corpo z
             glRotatef(axisy,0,1,0); // rotação corpo y
-            glRotatef(axisx,1,0,0); // rotação corpo z
+            glRotatef(axisx,1,0,0); // rotação corpo x
 
             glPushMatrix(); // corpo {
             color(0,100,140);
@@ -194,8 +199,7 @@ class Character {
             glRotatef(neckz,0,0,1); // rotação pescoço z
 
             glPushMatrix(); // pescoço {
-            // color(255,190,150);
-            color(0,0,255);
+            color(255,190,150);
             glTranslatef(0,0.5,0);
             glScalef(1,1,1);
             drawCube();
@@ -230,7 +234,7 @@ class Character {
 
             glPushMatrix(); // anti-braço direito {
             //color(255,190,150);
-            color(0,255,0);
+            color(0,0,255);
             glTranslatef(0.5,-2,0);
             glRotatef(-rforearmx,1,0,0);
             glRotatef(-rforearmy,0,1,0);
