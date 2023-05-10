@@ -16,15 +16,41 @@ void drawLine(float x1, float y1, float z1, float x2, float y2, float z2, int st
 	glPopMatrix();
 }
 
-void drawSquare() {
-	glBegin(GL_QUADS);
-		glVertex2f(-1,-1);
-		glVertex2f(1,-1);
-		glVertex2f(1,1);
-		glVertex2f(-1,1);
-	glEnd();
+void drawSquare(bool full) {
+
+	if (full) {
+		glBegin(GL_QUADS);
+		glVertex2f(-0.5,-0.5);
+		glVertex2f(0.5,-0.5);
+		glVertex2f(0.5,0.5);
+		glVertex2f(-0.5,0.5);
+		glEnd();
+	} else {
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(-0.5,-0.5);
+		glVertex2f(0.5,-0.5);
+		glVertex2f(0.5,0.5);
+		glVertex2f(-0.5,0.5);
+		glEnd();
+	}
 }
 
-void drawCube() {
-	glutSolidCube(1);
+void drawCube(bool full) {
+	if (full) glutSolidCube(1);
+	else glutWireCube(1);
+}
+
+void grid(int x_min, int y_min, int x_max, int y_max) {	
+	color(255,255,255);
+	for (int i = y_min; i < y_max; i++) drawLine(x_max,i,0,x_min,i,0,1);
+	for (int i = x_min; i < x_max; i++) drawLine(i,y_max,0,i,y_min,0,1);
+}
+
+void eixos() {
+	color(0,0,255); // z verde
+	drawLine(0,0,-10,0,0,10,5);
+	color(0,255,0); // y azul
+	drawLine(0,-10,0,0,10,0,5);
+	color(255,0,0); // x vermelho
+	drawLine(-10,0,0,10,0,0,5);
 }

@@ -5,6 +5,7 @@
 
 #include "Character.h"
 #include "Background.h"
+#include "Coin.h"
 #include "utils.h"
 
 int width = 500;
@@ -16,8 +17,12 @@ int frame = 0;
 float x_min = -10, y_min = -10, z_min = -10;
 float x_max = 10, y_max = 10, z_max = 10;
 
-Character character;
+float xcamera = 0, ycamera = 0, zcamera = 20;
+
+
+Character character(-4,-3,10);
 Background background(12, 12);
+Coin coin(0,0,9);
 
 void refresh();
 
@@ -34,25 +39,13 @@ void display() {
 	glLoadIdentity();
 
 	character.draw();
+	character.showHitbox();
 	background.draw();
-
-	// print grid
-	
-	// glColor3f(255,255,255);
-	// for (int i = y_min; i < y_max; i++) drawLine(x_max,i,x_min,i,0,1);
-	// for (int i = x_min; i < x_max; i++) drawLine(i,y_max,i,y_min,0,1);
-
-	// print eixos
-	
-	// color(0,0,255); // z verde
-	// drawLine(0,0,-10,0,0,10,5);
-	// color(0,255,0); // y azul
-	// drawLine(0,-10,0,0,10,0,5);
-	// color(255,0,0); // x vermelho
-	// drawLine(-10,0,0,10,0,0,5);
+	coin.draw();
+	coin.showHitbox();
 	
 	// refresh();
-	// gluLookAt(20*cos(frame/100.0),0,20*sin(frame/100.0),0,0,0,0,1,0);
+	// gluLookAt(20*cos(frame/100.0),ycamera,20*sin(frame/100.0),0,0,0,0,1,0);
 
 	glutSwapBuffers();
 }
@@ -61,7 +54,6 @@ void refresh() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(60,1,2.0,50.0);
-	// glOrtho(x_min, x_max, y_min, y_max, z_min, z_max);
 }
 
 void reshape(int w, int h) {
@@ -73,25 +65,24 @@ void reshape(int w, int h) {
 
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	refresh();
-	gluLookAt(0,0,20,0,0,0,0,1,0);
+	gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
 
 void keyboard (unsigned char key, int x, int y) {
-	static int aux = 0;
 	switch (key) {
 
 		case 'm':			
-			aux++;
+			xcamera++;
 			refresh();
-			gluLookAt(aux,0,20,aux,0,0,0,1,0);
+			gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
 			break;
 		case 'n':			
-			aux--;
+			xcamera--;
 			refresh();
-			gluLookAt(aux,0,20,aux,0,0,0,1,0);
+			gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
 			break;
 
 		case 'p':
@@ -139,6 +130,25 @@ void keyboard (unsigned char key, int x, int y) {
 	}
 }
 
+void specialkeys (int key, int x, int y) {
+	switch (key) {
+
+		case GLUT_KEY_LEFT:
+			character.movePos(-1,0,0);
+			break;
+		case GLUT_KEY_RIGHT:
+			character.movePos(1,0,0);
+			break;
+		case GLUT_KEY_UP:
+			character.movePos(0,1,0);
+			break;
+		case GLUT_KEY_DOWN:
+			character.movePos(0,-1,0);
+			break;
+	}
+
+}
+
 void init() {
 	glClearColor(0, 0, 0, 1);
 	glMatrixMode(GL_PROJECTION);
@@ -154,6 +164,11 @@ void init() {
 void nextFrame(int f) {
 	frame++;
 	character.animate();
+	coin.animate();
+
+	//coin.checkcolision(character.getHitbox());
+
+	// std::cout << coin.checkcolision(character.getHitbox()) << std::endl;
 	
 	glutPostRedisplay();
     glutTimerFunc(16,nextFrame,0);
@@ -173,6 +188,7 @@ int main(int argc, char** argv) {
 	glutReshapeFunc(reshape);
     glutTimerFunc(20,nextFrame,0);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(specialkeys);
 
     init();
 

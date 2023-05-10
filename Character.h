@@ -6,13 +6,20 @@
 class Character {
     private:
 
+        float posx, posy, posz;
+        
+        float scale = 0.25;
+
         int animation = 0, da = 5;
 
         int state = 0;
 
         float jump = 0;
         
-        float axisx = 0, axisy = 45, axisz = 0;
+        float axisx = 0, axisy = 90, axisz = 0;
+
+        float wHitbox = 4.5, hHitbox = 14.4, dHitbox = 6;
+        double hitbox[24] = {0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0};
 
         float neckx = 0, necky = 0, neckz = 0;
         float headx = 0, heady = 0, headz = 0;
@@ -28,12 +35,24 @@ class Character {
 
     public:
 
-        Character() {
-            
+        Character(float x, float y, float z) {
+            posx = x;
+            posy = y;
+            posz = z;
         }
 
         int getState() {
             return state;
+        }
+
+        double* getHitbox() {
+            return hitbox;
+        }
+
+        void movePos(int dx, int dy, int dz) {
+            posx += dx;
+            posy += dy;
+            posz += dz;
         }
 
         void moveNeck(int dx, int dy, int dz) {
@@ -161,34 +180,72 @@ class Character {
                     jump += (da % 2) * 0.01;
                     break;
                 case 6: // jumping
-                    legsx = abs((animation + 50)/2 * 80.0/50);
+                    legsx = (animation + 50)/2 * 80.0/50;
                     rarmx = -80 - animation;
                     rforearmx = 45;
                     larmx -= da;
                     lforearmx = 45;
                     kneesx = 45;
-                    jump = abs((animation + 50)/2 * 3.0/50);
+                    jump = 2 * (animation + 50)/2 * 3.0/50;
                     break;
+            }
+
+            updateHitbox();
+        }
+
+        void showHitbox() {
+
+            glPushMatrix();
+
+            glTranslatef(posx,posy + jump,posz);
+            glScalef(scale,scale,scale);
+
+            glRotatef(axisx,1,0,0); // rotação corpo x
+            glRotatef(axisy,0,1,0); // rotação corpo y
+            glRotatef(axisz,0,0,1); // rotação corpo z
+
+            glScalef(wHitbox,hHitbox,dHitbox);
+            color(255,255,255);
+            drawCube(false);
+
+            glPopMatrix();
+
+            glPointSize(10);
+            glBegin(GL_POINTS);
+            for (int i = 0; i < 12; i += 3) glVertex3f(hitbox[i],hitbox[i+1],hitbox[i+2]);
+            glEnd();
+        }
+
+        void updateHitbox() {
+            int i, j, k;
+
+            int ord[24] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1, -1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1};
+
+            for (int a = 0; a < 24; a += 3) {
+
+                i = ord[a]; j = ord[a+1]; k = ord[a+2];
+
+                hitbox[a] = ((0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*cos(axisy*M_PI/180) + 0.5*k * dHitbox*sin(axisy*M_PI/180)) * scale + posx;
+                hitbox[a+1] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*cos(axisx*M_PI/180) - (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*sin(axisx*M_PI/180)) * scale + posy + jump;
+                hitbox[a+2] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*sin(axisx*M_PI/180) + (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*cos(axisx*M_PI/180)) * scale + posz;
             }
         }
 
         void draw() {
 
-            
             glPushMatrix(); // personagem {
             
-            glScalef(0.5,0.5,0.5);
-            glTranslatef(0,0,10);
+            glTranslatef(posx,posy + jump,posz);
+            glScalef(scale,scale,scale);
             
-            glTranslatef(0,jump*5,0);
-            glRotatef(axisz,0,0,1); // rotação corpo z
-            glRotatef(axisy,0,1,0); // rotação corpo y
             glRotatef(axisx,1,0,0); // rotação corpo x
+            glRotatef(axisy,0,1,0); // rotação corpo y
+            glRotatef(axisz,0,0,1); // rotação corpo z
 
             glPushMatrix(); // corpo {
             color(0,100,140);
             glScalef(2,4,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // {
@@ -202,7 +259,7 @@ class Character {
             color(255,190,150);
             glTranslatef(0,0.5,0);
             glScalef(1,1,1);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // cabeça {
@@ -213,7 +270,7 @@ class Character {
             glRotatef(headz,0,0,1);
             glTranslatef(0,2,0);
             glScalef(4,4,4);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPopMatrix(); // }
@@ -229,7 +286,7 @@ class Character {
             color(0,100,140);
             glTranslatef(0.5,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // anti-braço direito {
@@ -241,7 +298,7 @@ class Character {
             glRotatef(-rforearmz,0,0,1);
             glTranslatef(0,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPopMatrix(); // }
@@ -257,7 +314,7 @@ class Character {
             color(0,100,140);
             glTranslatef(-0.5,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // anti-braço esquerdo {
@@ -268,7 +325,7 @@ class Character {
             glRotatef(-lforearmz,0,0,1);
             glTranslatef(0,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPopMatrix(); // }
@@ -282,20 +339,20 @@ class Character {
             
             glPushMatrix(); // perna direita {
             color(255,0,0);
-            glTranslatef(0,-1,0);
-            glScalef(1,2,2);
-            drawCube();
+            glTranslatef(0,-1.25,0);
+            glScalef(1,2.5,2);
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // joelho direito {
             color(255,190,150);
-            glTranslatef(0,-2,0);
+            glTranslatef(0,-2.5,0);
             glRotatef(kneesx,1,0,0);
             glRotatef(kneesy,0,1,0);
             glRotatef(kneesz,0,0,1);
             glTranslatef(0,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPopMatrix(); // }
@@ -309,21 +366,21 @@ class Character {
             
             glPushMatrix(); // perna esquerda {
             color(255,0,0);
-            glTranslatef(0,-1,0);
-            glScalef(1,2,2);
-            drawCube();
+            glTranslatef(0,-1.25,0);
+            glScalef(1,2.5,2);
+            drawCube(true);
             glPopMatrix(); // }
 
             glPushMatrix(); // joelho esquerdo {
             // color(255,190,150);
             color(255,255,0);
-            glTranslatef(0,-2,0);
+            glTranslatef(0,-2.5,0);
             glRotatef(kneesx,1,0,0);
             glRotatef(kneesy,0,1,0);
             glRotatef(kneesz,0,0,1);
             glTranslatef(0,-1,0);
             glScalef(1,2,2);
-            drawCube();
+            drawCube(true);
             glPopMatrix(); // }
 
             glPopMatrix(); // }

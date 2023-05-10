@@ -44,15 +44,17 @@ class Background {
             glPushMatrix();
             glColor3f(0.5,0.5,0.5);
             glTranslatef(0,-height+4,0.2);
+            glScalef(2,2,2);
             glScalef(width-0.15,2,1);
-            drawSquare();
+            drawSquare(true);
             glPopMatrix();
 
             glPushMatrix();
             glColor3f(1,1,1);
             glTranslatef(0,-height+4.5,0.3);
+            glScalef(2,2,2);
             glScalef(width-0.15,0.1,1);
-            drawSquare();
+            drawSquare(true);
             glPopMatrix();
 
         }
