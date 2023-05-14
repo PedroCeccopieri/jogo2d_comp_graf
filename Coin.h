@@ -1,77 +1,31 @@
 #include <GL/glut.h>
-#include <math.h>
-#include <iostream>
 
 #include "utils.h"
+#include "Entity.h"
 
-class Coin {
+class Coin: public Entity {
     private:
-        
-        float posx, posy, posz;
 
-        float scale = 1;
-
-        float axisx = 0, axisy = 0, axisz = 0;
-
-        float wHitbox = 1.25, hHitbox = 1.25, dHitbox = 1.25;
-        double hitbox[24] = {0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0};
+        int coinType;
 
     public:
 
-        Coin(float x, float y, float z) {
-            posx = x;
-            posy = y;
-            posz = z;
+        Coin(float x, float y, float z, int ct): Entity(x,y,z) {
+            
+            coinType = ct;
+            scale = 1;
+            wHitbox = 1.25, hHitbox = 1.25, dHitbox = 1.25;
         }
 
-        bool checkcolision(double hb[24]) {
-
-            return false;
+        int getPoint() {
+            return coinType;
         }
 
         void animate() {
 
-            axisy++; axisz++;
+            axisx++; axisz++;
 
             updateHitbox();
-        }
-
-        void showHitbox() {
-
-            glPushMatrix();
-
-            glTranslatef(posx,posy,posz);
-            glScalef(scale,scale,scale);
-
-            glRotatef(axisx,1,0,0); // rotação corpo x
-            glRotatef(axisy,0,1,0); // rotação corpo y
-            glRotatef(axisz,0,0,1); // rotação corpo z
-
-            glScalef(wHitbox,hHitbox,dHitbox);
-            color(255,255,255);
-            drawCube(false);
-
-            glPopMatrix();
-
-            glPointSize(10);
-            glBegin(GL_POINTS);
-            for (int i = 0; i < 24; i += 3) glVertex3f(hitbox[i],hitbox[i+1],hitbox[i+2]);
-            glEnd();
-        }
-
-        void updateHitbox() {
-            int i, j, k;
-
-            int ord[24] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1, -1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1};
-
-            for (int a = 0; a < 24; a += 3) {
-
-                i = ord[a]; j = ord[a+1]; k = ord[a+2];
-
-                hitbox[a] = ((0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*cos(axisy*M_PI/180) + 0.5*k * dHitbox*sin(axisy*M_PI/180)) * scale + posx;
-                hitbox[a+1] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*cos(axisx*M_PI/180) - (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*sin(axisx*M_PI/180)) * scale + posy;
-                hitbox[a+2] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*sin(axisx*M_PI/180) + (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*cos(axisx*M_PI/180)) * scale + posz;
-            }
         }
 
         void draw() {
@@ -87,10 +41,12 @@ class Coin {
 
             glScalef(wHitbox,hHitbox,dHitbox);
 
-            color(255,255,0);
+            if (coinType == 1) color(255,255,0);
+            else if (coinType == 3) color(0,0,255);
+            else if (coinType == 5) color(255,125,0);
+            else if (coinType == 10) color(255,0,0);
             drawCube(true);
 
             glPopMatrix();
         }
-
 };

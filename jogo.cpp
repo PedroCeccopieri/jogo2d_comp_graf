@@ -2,9 +2,12 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <math.h>
+#include <vector>
 
-#include "Character.h"
 #include "Background.h"
+
+#include "Entity.h"
+#include "Character.h"
 #include "Coin.h"
 #include "utils.h"
 
@@ -20,9 +23,10 @@ float x_max = 10, y_max = 10, z_max = 10;
 float xcamera = 0, ycamera = 0, zcamera = 20;
 
 
-Character character(-4,-3,10);
 Background background(12, 12);
-Coin coin(0,0,9);
+Character character(-4,-3,10);
+
+std::vector<Coin> coins = {Coin(-3,0,9,1), Coin(-1,0,9,3),Coin(1,0,9,5), Coin(3,0,9,10)};
 
 void refresh();
 
@@ -38,11 +42,13 @@ void display() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	character.draw();
-	character.showHitbox();
 	background.draw();
-	coin.draw();
-	coin.showHitbox();
+	character.draw();
+
+	for (int i = 0; i < coins.size(); i++) coins[i].draw();
+
+	character.showHitbox();
+	// coin.showHitbox();
 	
 	// refresh();
 	// gluLookAt(20*cos(frame/100.0),ycamera,20*sin(frame/100.0),0,0,0,0,1,0);
@@ -164,11 +170,12 @@ void init() {
 void nextFrame(int f) {
 	frame++;
 	character.animate();
-	coin.animate();
-
-	//coin.checkcolision(character.getHitbox());
-
-	// std::cout << coin.checkcolision(character.getHitbox()) << std::endl;
+	for (int i = 0; i < coins.size(); i++) {
+		coins[i].animate();
+		if (character.checkcolision(coins[i].getHitbox())) {
+			std::cout << coins[i].getPoint() << std::endl;
+		}
+	}
 	
 	glutPostRedisplay();
     glutTimerFunc(16,nextFrame,0);

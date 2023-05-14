@@ -54,3 +54,4 @@ void eixos() {
 	color(255,0,0); // x vermelho
 	drawLine(-10,0,0,10,0,0,5);
 }
+

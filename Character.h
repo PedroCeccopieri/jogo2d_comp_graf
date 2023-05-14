@@ -1,25 +1,17 @@
 #include <GL/glut.h>
 #include <math.h>
 
+#include "Entity.h"
 #include "utils.h"
 
-class Character {
+class Character:public Entity {
     private:
-
-        float posx, posy, posz;
         
-        float scale = 0.25;
-
         int animation = 0, da = 5;
 
         int state = 0;
 
         float jump = 0;
-        
-        float axisx = 0, axisy = 90, axisz = 0;
-
-        float wHitbox = 4.5, hHitbox = 14.4, dHitbox = 6;
-        double hitbox[24] = {0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0};
 
         float neckx = 0, necky = 0, neckz = 0;
         float headx = 0, heady = 0, headz = 0;
@@ -35,10 +27,10 @@ class Character {
 
     public:
 
-        Character(float x, float y, float z) {
-            posx = x;
-            posy = y;
-            posz = z;
+        Character(float x, float y, float z) : Entity(x,y,z) {
+            scale = 0.25;
+            axisx = 0, axisy = 90, axisz = 0;
+            wHitbox = 4.5, hHitbox = 14.4, dHitbox = 6;
         }
 
         int getState() {
@@ -132,6 +124,86 @@ class Character {
             kneesx = 0, kneesy = 0, kneesz = 0;
         }
 
+        void showHitbox() {
+
+            glPushMatrix();
+
+            glTranslatef(posx,posy + jump,posz);
+            glScalef(scale,scale,scale);
+
+            glRotatef(axisz,0,0,1); // rotação corpo z
+            glRotatef(axisy,0,1,0); // rotação corpo y
+            // glRotatef(axisx,1,0,0); // rotação corpo x
+
+            glScalef(wHitbox,hHitbox,dHitbox);
+            color(255,255,255);
+            drawCube(false);
+
+            glPopMatrix();
+
+            glPointSize(10);
+            glBegin(GL_POINTS);
+            color(255,255,0);
+            glVertex3f(hitbox[0],hitbox[1],hitbox[2]);
+            color(255,0,0);
+            glVertex3f(hitbox[3],hitbox[4],hitbox[5]);
+            color(0,255,0);
+            glVertex3f(hitbox[6],hitbox[7],hitbox[8]);
+            color(0,0,255);
+            glVertex3f(hitbox[9],hitbox[10],hitbox[11]);
+            glEnd();
+        }
+
+        void updateHitbox() {
+            int i, j, k;
+            int *a = NULL;
+
+            if (0 <= (int)axisy % 360 && (int)axisy % 360 < 90) {
+                int b[4] = {3,0,1,2};
+                a = b;
+            } else if (90 <= (int)axisy % 360 && (int)axisy % 360 < 180) {
+                int b[4] = {7,4,0,3};
+                a = b;
+            } else if (180 <= (int)axisy % 360 && (int)axisy % 360 < 270) {
+                int b[4] = {6,5,4,7};
+                a = b;
+            } else if (270 <= (int)axisy % 360 && (int)axisy % 360 < 360) {
+                int b[4] = {2,1,5,6};
+                a = b;
+            }
+
+            int ord[24] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1, -1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1};
+
+            for (int c = 0;  c < 12; c += 3) {
+
+                int d = a[(c+1)/3]*3;
+                
+                i = ord[d]; j = ord[d+1]; k = ord[d+2];
+
+                hitbox[c] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*cos(axisz*M_PI/180) - (0.5*j * hHitbox)*sin(axisz*M_PI/180)) * scale + posx;
+	            hitbox[c+1] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*sin(axisz*M_PI/180) + (0.5*j * hHitbox)*cos(axisz*M_PI/180)) * scale + posy + jump;
+	            hitbox[c+2] = ((-(0.5*i * wHitbox)*sin(axisy*M_PI/180) + (0.5*k * dHitbox)*cos(axisy*M_PI/180))) * scale + posz;
+
+                // hitbox[c] = ((0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*cos(axisy*M_PI/180) + 0.5*k * dHitbox*sin(axisy*M_PI/180)) * scale + posx;
+                // hitbox[c+1] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*cos(axisx*M_PI/180) - (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*sin(axisx*M_PI/180)) * scale + posy + jump;
+                // hitbox[c+2] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*sin(axisx*M_PI/180) + (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*cos(axisx*M_PI/180)) * scale + posz;
+
+                // std::cout << "c:" << c << ' ' << (c+1)/3 << std::endl;
+                // std::cout << "d:" << d << ',' << d+1 << ',' << d+2 << std::endl;
+                // std::cout << "i,j,k:" << i << ',' << j << ',' << k << std::endl;
+                // std::cout << std::endl;
+
+                // for (int i = 0; i < 12; i += 3) std::cout << hitbox[i] << ',' << hitbox[i+1] << ',' << hitbox[i+2] << std::endl;
+                // std::cout << std::endl;
+            }
+        }
+
+        bool checkcolision(double hb[12]) {
+	
+            return !(hb[0] > hitbox[9] || hb[9] < hitbox[0] || hb[1] < hitbox[4] || hb[4] > hitbox[1]);
+
+        }
+
         void animate() {
 
             if (animation == 50) da = -5;
@@ -193,44 +265,6 @@ class Character {
             updateHitbox();
         }
 
-        void showHitbox() {
-
-            glPushMatrix();
-
-            glTranslatef(posx,posy + jump,posz);
-            glScalef(scale,scale,scale);
-
-            glRotatef(axisx,1,0,0); // rotação corpo x
-            glRotatef(axisy,0,1,0); // rotação corpo y
-            glRotatef(axisz,0,0,1); // rotação corpo z
-
-            glScalef(wHitbox,hHitbox,dHitbox);
-            color(255,255,255);
-            drawCube(false);
-
-            glPopMatrix();
-
-            glPointSize(10);
-            glBegin(GL_POINTS);
-            for (int i = 0; i < 12; i += 3) glVertex3f(hitbox[i],hitbox[i+1],hitbox[i+2]);
-            glEnd();
-        }
-
-        void updateHitbox() {
-            int i, j, k;
-
-            int ord[24] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1, -1,-1,-1, 1,-1,-1, 1,1,-1, -1,1,-1};
-
-            for (int a = 0; a < 24; a += 3) {
-
-                i = ord[a]; j = ord[a+1]; k = ord[a+2];
-
-                hitbox[a] = ((0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*cos(axisy*M_PI/180) + 0.5*k * dHitbox*sin(axisy*M_PI/180)) * scale + posx;
-                hitbox[a+1] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*cos(axisx*M_PI/180) - (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*sin(axisx*M_PI/180)) * scale + posy + jump;
-                hitbox[a+2] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*sin(axisx*M_PI/180) + (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*cos(axisx*M_PI/180)) * scale + posz;
-            }
-        }
-
         void draw() {
 
             glPushMatrix(); // personagem {
@@ -238,9 +272,9 @@ class Character {
             glTranslatef(posx,posy + jump,posz);
             glScalef(scale,scale,scale);
             
-            glRotatef(axisx,1,0,0); // rotação corpo x
-            glRotatef(axisy,0,1,0); // rotação corpo y
             glRotatef(axisz,0,0,1); // rotação corpo z
+            glRotatef(axisy,0,1,0); // rotação corpo y
+            // glRotatef(axisx,1,0,0); // rotação corpo x
 
             glPushMatrix(); // corpo {
             color(0,100,140);
