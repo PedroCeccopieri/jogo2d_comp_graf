@@ -5,7 +5,7 @@
 
 class Coin: public Entity {
     private:
-
+    
         int coinType;
 
     public:
@@ -13,7 +13,7 @@ class Coin: public Entity {
         Coin(float x, float y, float z, int ct): Entity(x,y,z) {
             
             coinType = ct;
-            scale = 1;
+            scale = 0.5;
             wHitbox = 1.25, hHitbox = 1.25, dHitbox = 1.25;
         }
 

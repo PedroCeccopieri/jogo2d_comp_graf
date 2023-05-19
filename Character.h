@@ -8,10 +8,13 @@ class Character:public Entity {
     private:
         
         int animation = 0, da = 5;
+        int interpx = INTER, interpy = INTER;
 
         int state = 0;
 
         float jump = 0;
+
+        float dposx, dposy, dposz;
 
         float neckx = 0, necky = 0, neckz = 0;
         float headx = 0, heady = 0, headz = 0;
@@ -41,10 +44,46 @@ class Character:public Entity {
             return hitbox;
         }
 
+        float getPosx() {
+            return posx;
+        }
+
+        float getPosy() {
+            return posy;
+        }
+
+        float getInterpx() {
+            return interpx;
+        }
+
+        float getInterpy() {
+            return interpy;
+        }
+
+        void resetInterpx() {
+            interpx = 0;
+        }
+
+        void resetInterpy() {
+            interpy = 0;
+        }
+
+        void nextInterpx() {
+            interpx++;
+        }
+
+        void nextInterpy() {
+            interpy++;
+        }
+
         void movePos(int dx, int dy, int dz) {
-            posx += dx;
-            posy += dy;
-            posz += dz;
+
+            dposx = dx;
+            dposy = dy;
+            dposz = dz;
+
+            if (dx > 0) axisy = 90;
+            if (dx < 0) axisy = 270;
         }
 
         void moveNeck(int dx, int dy, int dz) {
@@ -102,14 +141,14 @@ class Character:public Entity {
         }
 
         void setState(int s) {
-            reset();
-            state = s;
+            if (s != state) {
+                reset();
+                state = s;
+            }
         }
         
         void reset() {
             animation = 0, da = 5;
-
-            jump = 0;
 
             neckx = 0, necky = 0, neckz = 0;
             headx = 0, heady = 0, headz = 0;
@@ -184,10 +223,6 @@ class Character:public Entity {
 	            hitbox[c+1] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*sin(axisz*M_PI/180) + (0.5*j * hHitbox)*cos(axisz*M_PI/180)) * scale + posy + jump;
 	            hitbox[c+2] = ((-(0.5*i * wHitbox)*sin(axisy*M_PI/180) + (0.5*k * dHitbox)*cos(axisy*M_PI/180))) * scale + posz;
 
-                // hitbox[c] = ((0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*cos(axisy*M_PI/180) + 0.5*k * dHitbox*sin(axisy*M_PI/180)) * scale + posx;
-                // hitbox[c+1] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*cos(axisx*M_PI/180) - (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*sin(axisx*M_PI/180)) * scale + posy + jump;
-                // hitbox[c+2] = ((0.5*i * wHitbox*sin(axisz*M_PI/180) + 0.5*j * hHitbox*cos(axisz*M_PI/180))*sin(axisx*M_PI/180) + (-(0.5*i * wHitbox*cos(axisz*M_PI/180) - 0.5*j * hHitbox*sin(axisz*M_PI/180))*sin(axisy*M_PI/180) + 0.5*k * dHitbox*cos(axisy*M_PI/180))*cos(axisx*M_PI/180)) * scale + posz;
-
                 // std::cout << "c:" << c << ' ' << (c+1)/3 << std::endl;
                 // std::cout << "d:" << d << ',' << d+1 << ',' << d+2 << std::endl;
                 // std::cout << "i,j,k:" << i << ',' << j << ',' << k << std::endl;
@@ -204,6 +239,14 @@ class Character:public Entity {
 
         }
 
+        void updatePos() {
+            if (interpx < INTER) {
+                if (state == 1 || state == 4) posx += dposx/(2*INTER);
+                if (state == 2 || state == 5) posx += dposx/INTER;
+                // std::cout << dposx/INTER << ' ' << interpx << std::endl;
+            }
+        }
+
         void animate() {
 
             if (animation == 50) da = -5;
@@ -213,6 +256,7 @@ class Character:public Entity {
             switch (state) {
 
                 case 0: // stopped
+                    jump = 0;
                     break;
                 case 1: // walking
                     legsx += da;
@@ -258,7 +302,8 @@ class Character:public Entity {
                     larmx -= da;
                     lforearmx = 45;
                     kneesx = 45;
-                    jump = 2 * (animation + 50)/2 * 3.0/50;
+                    // posy = 2 * (animation + 50)/2 * 3.0/50;
+                    // posy += (da % 2) * std::max(0,animation/10);
                     break;
             }
 

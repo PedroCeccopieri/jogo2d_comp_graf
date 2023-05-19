@@ -17,7 +17,8 @@ class Background {
     }
 
     void draw() {
-        for (int i = -(t-1)/2; i <= (t-1)/2; i++) {
+        // for (int i = -(t-1)/2; i <= (t-1)/2; i++) {
+        for (int i = 0; i < t; i++) {
 
             glBegin(GL_QUADS);
             color(0,250,250);
@@ -27,7 +28,6 @@ class Background {
             glVertex3f(width * (2*i + 1),height,0);
             glEnd();
 
-        
             color(0,255,0);
             glBegin(GL_POLYGON);
             glVertex3f(width * (2*i + 1),-height,0.1);
