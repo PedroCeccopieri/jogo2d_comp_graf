@@ -7,7 +7,7 @@ class Background {
     private:
         int width, height;
 
-        int t = 1;
+        int t = 10;
 
     public:
 
@@ -18,7 +18,7 @@ class Background {
 
     void draw() {
         // for (int i = -(t-1)/2; i <= (t-1)/2; i++) {
-        for (int i = 0; i < t; i++) {
+        for (int i = -1; i < t-1; i++) {
 
             glBegin(GL_QUADS);
             color(0,250,250);
@@ -45,7 +45,7 @@ class Background {
             glColor3f(0.5,0.5,0.5);
             glTranslatef(0,-height+4,0.2);
             glScalef(2,2,2);
-            glScalef(width-0.15,2,1);
+            glScalef(width*t-0.15,2,1);
             drawSquare(true);
             glPopMatrix();
 
@@ -53,7 +53,7 @@ class Background {
             glColor3f(1,1,1);
             glTranslatef(0,-height+4.5,0.3);
             glScalef(2,2,2);
-            glScalef(width-0.15,0.1,1);
+            glScalef(width*t-0.15,0.1,1);
             drawSquare(true);
             glPopMatrix();
 

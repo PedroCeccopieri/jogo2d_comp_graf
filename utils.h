@@ -3,7 +3,7 @@
 
 #define INTERX 5
 #define INTERY 10
-#define GRAV 0.3
+#define GRAV 0.2
 #define FLOOR -8
 
 void color(int r, int g, int b);

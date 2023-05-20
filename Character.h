@@ -7,6 +7,8 @@
 class Character:public Entity {
     private:
         
+        int points = 0;
+        
         int animation = 0, da = 5;
         int interpx = INTERX, interpy = INTERY;
 
@@ -14,6 +16,8 @@ class Character:public Entity {
         int state = 0;
 
         float jumpHeight = 0;
+
+        float floor = FLOOR;
 
         float dposx, dposy, dposz;
 
@@ -35,6 +39,14 @@ class Character:public Entity {
             scale = 0.25;
             axisx = 0, axisy = 90, axisz = 0;
             wHitbox = 4.5, hHitbox = 14.4, dHitbox = 6;
+        }
+
+        void addPoint(int p) {
+            points += p;
+        }
+
+        float getPosX() {
+            return posx;
         }
 
         double* getHitbox() {
@@ -204,12 +216,12 @@ class Character:public Entity {
                 posy += dposy/INTERY;
             }
 
-            if (posy > FLOOR) {
-                if (posy - GRAV * interpy/5 < FLOOR) {
-                    posy = FLOOR;
+            if (posy > floor) {
+                if (posy - GRAV * interpy/5 < floor) {
+                    posy = floor;
                 } else posy -= GRAV * interpy/5;
 
-                if (posy == FLOOR) {
+                if (posy == floor) {
                     resetJumped();
                 }
             }

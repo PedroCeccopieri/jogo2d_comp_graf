@@ -9,6 +9,8 @@
 #include "Entity.h"
 #include "Character.h"
 #include "Coin.h"
+#include "Bullet.h"
+#include "Hole.h"
 #include "utils.h"
 
 int width = 500;
@@ -28,6 +30,8 @@ Background background(18, 18);
 Character character(-10,-8,10);
 
 std::vector<Coin> coins = {Coin(-3,0,9,1), Coin(-1,0,9,3),Coin(1,0,9,5), Coin(3,0,9,10)};
+std::vector<Bullet> bullets = {Bullet(10,-5, 9)}; // Bullet(30,-8, 9)
+std::vector<Hole> holes = {Hole(0,-10,0.5)};
 
 void refresh();
 
@@ -39,7 +43,6 @@ void display() {
 
 	// aspect
 
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -48,8 +51,12 @@ void display() {
 	character.draw();
 
 	for (int i = 0; i < coins.size(); i++) coins[i].draw();
+	for (int i = 0; i < bullets.size(); i++) bullets[i].draw();
+	for (int i = 0; i < holes.size(); i++) holes[i].draw();
 
-	character.showHitbox();
+	for (int i = 0; i < holes.size(); i++) holes[i].showHitbox();
+
+	// character.showHitbox();
 	// coin.showHitbox();
 	
 	// refresh();
@@ -121,24 +128,39 @@ void nextFrame(int f) {
 	keysAction();
 
 	character.updatePos();
-
 	character.updateState();
 	
-	// xcamera = character.getPosx();
+	xcamera = character.getPosX();
 
-	// refresh();
-	// gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
+	refresh();
+	gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
 
 	character.animate();
+
 	for (int i = 0; i < coins.size(); i++) {
+		
 		coins[i].animate();
+		
 		if (character.checkcolision(coins[i].getHitbox())) {
-			std::cout << coins[i].getPoint() << std::endl;
+
+			character.addPoint(coins[i].getPoint());
+			coins.erase(coins.begin()+i,coins.begin()+i+1);
+
 		}
 	}
-	
+
+	for (int i = 0; i < bullets.size(); i++) {
+		bullets[i].animate();
+		if (character.checkcolision(bullets[i].getHitbox())) exit(0);
+	}
+
+	for (int i = 0; i < holes.size(); i++) {
+		holes[i].animate();
+		if (character.checkcolision(holes[i].getHitbox())) exit(0);
+	}
+
 	glutPostRedisplay();
-    glutTimerFunc(16,nextFrame,0);	
+    glutTimerFunc(16,nextFrame,0);
 }
 
 void refresh() {
@@ -177,7 +199,6 @@ void init() {
 
 	for (int i = 0; i < 256; i++) keystates[i] = false;
 }
-
 
 int main(int argc, char** argv) {
 
