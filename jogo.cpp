@@ -17,8 +17,6 @@ float aspect = width / height;
 
 int frame = 0;
 
-bool run = false, shooting = false;
-
 float x_min = -10, y_min = -10, z_min = -10;
 float x_max = 10, y_max = 10, z_max = 10;
 
@@ -60,6 +58,89 @@ void display() {
 	glutSwapBuffers();
 }
 
+void keysAction() {
+
+	if (keystates['m']) {
+		xcamera++;
+		refresh();
+		gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
+	}
+	if (keystates['n']) {
+		xcamera--;
+		refresh();
+		gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
+	}
+
+	if (keystates['z']) character.setRun(true);
+	else character.setRun(false);
+	if (keystates['x']) character.setShoot(true);
+	else character.setShoot(false);
+
+	if (keystates[GLUT_KEY_RIGHT]){
+		character.movePosX(1);
+		character.resetInterpx();
+	}
+	if (keystates[GLUT_KEY_LEFT]) {
+		character.movePosX(-1);
+		character.resetInterpx();
+	} 
+	if (keystates[GLUT_KEY_UP]) {
+		character.movePosY(10);
+		character.resetInterpy();
+		character.setJumped();
+	}
+	if (keystates[GLUT_KEY_DOWN]) {
+		character.movePosY(-1);
+		// character.resetInterpy();
+	}
+}
+
+void keyboard (unsigned char key, int x, int y) {
+	keystates[key] = true;
+	std::cout << "key down: " << key << std::endl;
+}
+
+void specialkeys (int key, int x, int y) {
+	keystates[key] = true;
+	std::cout << "key down: " << key << std::endl;
+}
+
+void keyboardUp (unsigned char key, int x, int y) {
+	keystates[key] = false;
+	std::cout << "key up: " << key << std::endl;
+}
+
+void specialkeysUp (int key, int x, int y) {
+	keystates[key] = false;
+	std::cout << "key up: " << key << std::endl;
+}
+
+void nextFrame(int f) {
+	frame++;
+
+	keysAction();
+
+	character.updatePos();
+
+	character.updateState();
+	
+	// xcamera = character.getPosx();
+
+	// refresh();
+	// gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
+
+	character.animate();
+	for (int i = 0; i < coins.size(); i++) {
+		coins[i].animate();
+		if (character.checkcolision(coins[i].getHitbox())) {
+			std::cout << coins[i].getPoint() << std::endl;
+		}
+	}
+	
+	glutPostRedisplay();
+    glutTimerFunc(16,nextFrame,0);	
+}
+
 void refresh() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -82,81 +163,6 @@ void reshape(int w, int h) {
 	glutPostRedisplay();
 }
 
-void keysAction() {
-
-	if (keystates['m']) {
-		xcamera++;
-		refresh();
-		gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
-	}
-	if (keystates['n']) {
-		xcamera--;
-		refresh();
-		gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
-	}
-		
-	if (keystates['p']) character.moveAxis(5,0,0);
-	if (keystates['P']) character.moveAxis(-5,0,0);
-		
-
-	if (keystates['o']) character.moveAxis(0,5,0);
-	if (keystates['O']) character.moveAxis(0,-5,0);
-
-	if (keystates['i']) character.moveAxis(0,0,5);
-	if (keystates['I']) character.moveAxis(0,0,-5);
-
-	if (keystates['z']) run = true;
-	else run = false;
-	if (keystates['x']) shooting = true;
-	else shooting = false;
-
-	if (keystates[GLUT_KEY_RIGHT]){
-		character.movePos(1,0,0);
-		character.resetInterpx();
-	}
-	if (keystates[GLUT_KEY_LEFT]) {
-		character.movePos(-1,0,0);
-		character.resetInterpx();
-	} 
-	if (keystates[GLUT_KEY_UP]) {
-		character.movePos(0,1,0);
-		character.resetInterpy();
-	}
-	if (keystates[GLUT_KEY_DOWN]) {
-		character.movePos(0,-1,0);
-		// character.resetInterpy();
-	}
-}
-
-void show() {
-	// for (int i = 0; i < 256; i++) std::cout << keystates[i] << ' ';
-	// std::cout << std::endl;
-}
-
-void keyboard (unsigned char key, int x, int y) {
-	keystates[key] = true;
-	std::cout << "key down: " << key << std::endl;
-	show();
-}
-
-void specialkeys (int key, int x, int y) {
-	keystates[key] = true;
-	std::cout << "key down: " << key << std::endl;
-	show();
-}
-
-void keyboardUp (unsigned char key, int x, int y) {
-	keystates[key] = false;
-	std::cout << "key up: " << key << std::endl;
-	show();
-}
-
-void specialkeysUp (int key, int x, int y) {
-	keystates[key] = false;
-	std::cout << "key up: " << key << std::endl;
-	show();
-}
-
 void init() {
 	glClearColor(0, 0, 0, 1);
 	glMatrixMode(GL_PROJECTION);
@@ -172,44 +178,6 @@ void init() {
 	for (int i = 0; i < 256; i++) keystates[i] = false;
 }
 
-void nextFrame(int f) {
-	frame++;
-
-	keysAction();
-
-	character.updatePos();
-	
-	if (character.getInterpx() < INTER) {
-		character.nextInterpx();
-	}
-
-	if (character.getInterpy() < INTER) {
-		character.nextInterpy();
-	}
-
-	if (character.getInterpx() < INTER && !run && !shooting) character.setState(1);
-	else if (character.getInterpx() < INTER && run && !shooting) character.setState(2);
-	else if (character.getInterpx() == INTER && shooting) character.setState(3);
-	else if (character.getInterpx() < INTER && !run && shooting) character.setState(4);
-	else if (character.getInterpx() < INTER && run && shooting) character.setState(5);
-	else character.setState(0);
-
-	// xcamera = character.getPosx();
-
-	// refresh();
-	// gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
-
-	character.animate();
-	for (int i = 0; i < coins.size(); i++) {
-		coins[i].animate();
-		if (character.checkcolision(coins[i].getHitbox())) {
-			std::cout << coins[i].getPoint() << std::endl;
-		}
-	}
-	
-	glutPostRedisplay();
-    glutTimerFunc(16,nextFrame,0);	
-}
 
 int main(int argc, char** argv) {
 
@@ -232,8 +200,6 @@ int main(int argc, char** argv) {
 
 	glutKeyboardUpFunc(keyboardUp);
 	glutSpecialUpFunc(specialkeysUp);
-
-	//glutSpecialUpFunc();
 
     init();
 

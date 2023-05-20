@@ -8,11 +8,12 @@ class Character:public Entity {
     private:
         
         int animation = 0, da = 5;
-        int interpx = INTER, interpy = INTER;
+        int interpx = INTERX, interpy = INTERY;
 
+        bool run = false, shooting = false, jumped = false;
         int state = 0;
 
-        float jump = 0;
+        float jumpHeight = 0;
 
         float dposx, dposy, dposz;
 
@@ -36,28 +37,8 @@ class Character:public Entity {
             wHitbox = 4.5, hHitbox = 14.4, dHitbox = 6;
         }
 
-        int getState() {
-            return state;
-        }
-
         double* getHitbox() {
             return hitbox;
-        }
-
-        float getPosx() {
-            return posx;
-        }
-
-        float getPosy() {
-            return posy;
-        }
-
-        float getInterpx() {
-            return interpx;
-        }
-
-        float getInterpy() {
-            return interpy;
         }
 
         void resetInterpx() {
@@ -65,79 +46,27 @@ class Character:public Entity {
         }
 
         void resetInterpy() {
-            interpy = 0;
+            if (!jumped) interpy = 0;
         }
 
-        void nextInterpx() {
-            interpx++;
+        void setRun(bool r) {
+            run = r;
         }
 
-        void nextInterpy() {
-            interpy++;
+        void setShoot(bool s) {
+            shooting = s;
         }
 
-        void movePos(int dx, int dy, int dz) {
+        void movePosX(int dx) {
 
             dposx = dx;
-            dposy = dy;
-            dposz = dz;
-
+        
             if (dx > 0) axisy = 90;
             if (dx < 0) axisy = 270;
         }
 
-        void moveNeck(int dx, int dy, int dz) {
-            neckx += dx;
-            necky += dy;
-            neckz += dz;
-        }
-
-        void moveHead(int dx, int dy, int dz) {
-            headx += dx;
-            heady += dy;
-            headz += dz;
-        }
-
-        void moveRightArm(int dx, int dy, int dz) {
-            rarmx += dx;
-            rarmy += dy;
-            rarmz += dz;
-        }
-
-        void moveLeftArm(int dx, int dy, int dz) {
-            rarmx += dx;
-            rarmy += dy;
-            rarmz += dz;
-        }
-
-        void moveRightForearm(int dx, int dy, int dz) {
-            rforearmx += dx;
-            rforearmy += dy;
-            rforearmz += dz;
-        }
-
-        void moveLeftForearm(int dx, int dy, int dz) {
-            lforearmx += dx;
-            lforearmy += dy;
-            lforearmz += dz;
-        }
-
-        void moveLegs(int dx, int dy, int dz) {
-            legsx += dx;
-            legsy += dy;
-            legsz += dz;
-        }
-
-        void moveKnees(int dx, int dy, int dz) {
-            kneesx += dx;
-            kneesy += dy;
-            kneesz += dz;
-        }
-
-        void moveAxis(int dx, int dy, int dz) {
-            axisx += dx;
-            axisy += dy;
-            axisz += dz;
+        void movePosY(int dy) {
+            dposy = dy;
         }
 
         void setState(int s) {
@@ -163,11 +92,36 @@ class Character:public Entity {
             kneesx = 0, kneesy = 0, kneesz = 0;
         }
 
+        void setJumped() {
+            jumped = true;
+        }
+        
+        void resetJumped() {
+            jumped = false;
+        }
+        
+        void updateState() {
+            if (interpx < INTERX) {
+                interpx++;
+            }
+
+            if (interpy < INTERY) {
+                interpy++;
+            }
+
+            if (interpx < INTERX && !run && !shooting) setState(1);
+            else if (interpx < INTERX && run && !shooting) setState(2);
+            else if (interpx == INTERX && shooting) setState(3);
+            else if (interpx < INTERX && !run && shooting) setState(4);
+            else if (interpx < INTERX && run && shooting) setState(5);
+            else setState(0);
+        }
+
         void showHitbox() {
 
             glPushMatrix();
 
-            glTranslatef(posx,posy + jump,posz);
+            glTranslatef(posx,posy + jumpHeight,posz);
             glScalef(scale,scale,scale);
 
             glRotatef(axisz,0,0,1); // rotação corpo z
@@ -220,7 +174,7 @@ class Character:public Entity {
                 i = ord[d]; j = ord[d+1]; k = ord[d+2];
 
                 hitbox[c] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*cos(axisz*M_PI/180) - (0.5*j * hHitbox)*sin(axisz*M_PI/180)) * scale + posx;
-	            hitbox[c+1] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*sin(axisz*M_PI/180) + (0.5*j * hHitbox)*cos(axisz*M_PI/180)) * scale + posy + jump;
+	            hitbox[c+1] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*sin(axisz*M_PI/180) + (0.5*j * hHitbox)*cos(axisz*M_PI/180)) * scale + posy + jumpHeight;
 	            hitbox[c+2] = ((-(0.5*i * wHitbox)*sin(axisy*M_PI/180) + (0.5*k * dHitbox)*cos(axisy*M_PI/180))) * scale + posz;
 
                 // std::cout << "c:" << c << ' ' << (c+1)/3 << std::endl;
@@ -240,10 +194,24 @@ class Character:public Entity {
         }
 
         void updatePos() {
-            if (interpx < INTER) {
-                if (state == 1 || state == 4) posx += dposx/(2*INTER);
-                if (state == 2 || state == 5) posx += dposx/INTER;
+            if (interpx < INTERX) {
+                if (state == 1 || state == 4) posx += dposx/(2*INTERX);
+                if (state == 2 || state == 5) posx += dposx/INTERX;
                 // std::cout << dposx/INTER << ' ' << interpx << std::endl;
+            }
+
+            if (interpy < INTERY) {
+                posy += dposy/INTERY;
+            }
+
+            if (posy > FLOOR) {
+                if (posy - GRAV * interpy/5 < FLOOR) {
+                    posy = FLOOR;
+                } else posy -= GRAV * interpy/5;
+
+                if (posy == FLOOR) {
+                    resetJumped();
+                }
             }
         }
 
@@ -256,7 +224,7 @@ class Character:public Entity {
             switch (state) {
 
                 case 0: // stopped
-                    jump = 0;
+                    jumpHeight = 0;
                     break;
                 case 1: // walking
                     legsx += da;
@@ -265,7 +233,7 @@ class Character:public Entity {
                     rforearmx = 15;
                     lforearmx = 15;
                     kneesx = 15;
-                    jump += (da % 2) * 0.005;
+                    jumpHeight += (da % 2) * 0.005;
                     break;
                 case 2: // running
                     legsx += da * 1.8;
@@ -274,7 +242,7 @@ class Character:public Entity {
                     rforearmx = 45;
                     lforearmx = 45;
                     kneesx = 45;
-                    jump += (da % 2) * 0.01;
+                    jumpHeight += (da % 2) * 0.01;
                     break;
                 case 3: // stopped and shotting
                     rarmx = -90;
@@ -285,7 +253,7 @@ class Character:public Entity {
                     larmx += da;
                     lforearmx = 15;
                     kneesx = 15;
-                    jump += (da % 2) * 0.005;
+                    jumpHeight += (da % 2) * 0.005;
                     break;
                 case 5: // running and shotting
                     legsx += da * 1.8;
@@ -293,7 +261,7 @@ class Character:public Entity {
                     larmx += da * 1.8;
                     lforearmx = 45;
                     kneesx = 45;
-                    jump += (da % 2) * 0.01;
+                    jumpHeight += (da % 2) * 0.01;
                     break;
                 case 6: // jumping
                     legsx = (animation + 50)/2 * 80.0/50;
@@ -314,7 +282,7 @@ class Character:public Entity {
 
             glPushMatrix(); // personagem {
             
-            glTranslatef(posx,posy + jump,posz);
+            glTranslatef(posx,posy + jumpHeight,posz);
             glScalef(scale,scale,scale);
             
             glRotatef(axisz,0,0,1); // rotação corpo z
