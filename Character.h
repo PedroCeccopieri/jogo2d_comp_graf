@@ -44,13 +44,9 @@ class Character:public Entity {
         void addPoint(int p) {
             points += p;
         }
-
-        float getPosX() {
-            return posx;
-        }
-
-        double* getHitbox() {
-            return hitbox;
+        
+        int getPoints() {
+            return points;
         }
 
         void resetInterpx() {
@@ -188,14 +184,6 @@ class Character:public Entity {
                 hitbox[c] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*cos(axisz*M_PI/180) - (0.5*j * hHitbox)*sin(axisz*M_PI/180)) * scale + posx;
 	            hitbox[c+1] = (((0.5*i * wHitbox)*cos(axisy*M_PI/180) + (0.5*k * dHitbox)*sin(axisy*M_PI/180))*sin(axisz*M_PI/180) + (0.5*j * hHitbox)*cos(axisz*M_PI/180)) * scale + posy + jumpHeight;
 	            hitbox[c+2] = ((-(0.5*i * wHitbox)*sin(axisy*M_PI/180) + (0.5*k * dHitbox)*cos(axisy*M_PI/180))) * scale + posz;
-
-                // std::cout << "c:" << c << ' ' << (c+1)/3 << std::endl;
-                // std::cout << "d:" << d << ',' << d+1 << ',' << d+2 << std::endl;
-                // std::cout << "i,j,k:" << i << ',' << j << ',' << k << std::endl;
-                // std::cout << std::endl;
-
-                // for (int i = 0; i < 12; i += 3) std::cout << hitbox[i] << ',' << hitbox[i+1] << ',' << hitbox[i+2] << std::endl;
-                // std::cout << std::endl;
             }
         }
 
@@ -209,7 +197,6 @@ class Character:public Entity {
             if (interpx < INTERX) {
                 if (state == 1 || state == 4) posx += dposx/(2*INTERX);
                 if (state == 2 || state == 5) posx += dposx/INTERX;
-                // std::cout << dposx/INTER << ' ' << interpx << std::endl;
             }
 
             if (interpy < INTERY) {

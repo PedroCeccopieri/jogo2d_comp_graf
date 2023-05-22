@@ -18,7 +18,17 @@ class Coin: public Entity {
         }
 
         int getPoint() {
-            return coinType;
+            switch (coinType) {
+            case 0:
+                return 1;
+            case 1:
+                return 3;
+            case 2:
+                return 5;
+            case 3:
+                return 10;
+            }
+            return -1;
         }
 
         void animate() {
@@ -41,10 +51,10 @@ class Coin: public Entity {
 
             glScalef(wHitbox,hHitbox,dHitbox);
 
-            if (coinType == 1) color(255,255,0);
-            else if (coinType == 3) color(0,0,255);
-            else if (coinType == 5) color(255,125,0);
-            else if (coinType == 10) color(255,0,0);
+            if (coinType == 0) color(255,255,0);
+            else if (coinType == 1) color(0,0,255);
+            else if (coinType == 2) color(255,125,0);
+            else if (coinType == 3) color(255,0,0);
             drawCube(true);
 
             glPopMatrix();

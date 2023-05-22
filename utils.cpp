@@ -40,6 +40,16 @@ void drawCube(bool full) {
 	else glutWireCube(1);
 }
 
+void drawText(int x, int y, char *string) {
+  color(0,0,0);
+  glRasterPos3f(x, y, 10);
+  int len, i;
+  len = (int)strlen(string);
+  for (i = 0; i < len; i++) {
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string[i]);
+  }
+}
+
 void grid(int x_min, int y_min, int x_max, int y_max) {	
 	color(255,255,255);
 	for (int i = y_min; i < y_max; i++) drawLine(x_max,i,0,x_min,i,0,1);
@@ -54,4 +64,3 @@ void eixos() {
 	color(255,0,0); // x vermelho
 	drawLine(-10,0,0,10,0,0,5);
 }
-

@@ -1,6 +1,9 @@
 
 #include <GL/glut.h>
 #include <iostream>
+#include <cstdlib>
+#include <string>
+#include <cstring>
 #include <math.h>
 #include <vector>
 
@@ -19,33 +22,40 @@ float aspect = width / height;
 
 int frame = 0;
 
-float x_min = -10, y_min = -10, z_min = -10;
-float x_max = 10, y_max = 10, z_max = 10;
+float x_min = -18, y_min = -18;
+float x_max = 18, y_max = 18;
+
+int qnt = 10;
+
+int previousScreen = -1, currentScreen, nextScreen, furthestScreen = -1;
 
 float xcamera = 0, ycamera = 0, zcamera = 30;
 
 bool keystates[256];
 
-Background background(18, 18);
+bool newScreen = true;
+int coinsNumber;
+
+Background background(x_max, y_max, qnt);
+
 Character character(-10,-8,10);
 
-std::vector<Coin> coins = {Coin(-3,0,9,1), Coin(-1,0,9,3),Coin(1,0,9,5), Coin(3,0,9,10)};
-std::vector<Bullet> bullets = {Bullet(10,-5, 9)}; // Bullet(30,-8, 9)
-std::vector<Hole> holes = {Hole(0,-10,0.5)};
+std::vector<Coin> coins;
+std::vector<Bullet> bullets;
+std::vector<Hole> holes;
 
 void refresh();
+void generateScreen(int screen);
 
 void display() {
-	// glMatrixMode(GL_PROJECTION);
-	// glLoadIdentity();
-
-	// frame update
-
-	// aspect
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	std::string score = "Score: " + std::to_string(character.getPoints());
+	char* ca = new char[score.length() + 1];
+	strcpy(ca, score.c_str());
+	drawText(xcamera-10,10,ca);
 
 	background.draw();
 	character.draw();
@@ -54,15 +64,24 @@ void display() {
 	for (int i = 0; i < bullets.size(); i++) bullets[i].draw();
 	for (int i = 0; i < holes.size(); i++) holes[i].draw();
 
-	for (int i = 0; i < holes.size(); i++) holes[i].showHitbox();
-
-	// character.showHitbox();
-	// coin.showHitbox();
-	
-	// refresh();
-	// gluLookAt(20*cos(frame/100.0),ycamera,20*sin(frame/100.0),0,0,0,0,1,0);
-
 	glutSwapBuffers();
+}
+
+void keyboard (unsigned char key, int x, int y) {
+	keystates[key] = true;
+
+}
+
+void specialkeys (int key, int x, int y) {
+	keystates[key] = true;
+}
+
+void keyboardUp (unsigned char key, int x, int y) {
+	keystates[key] = false;
+}
+
+void specialkeysUp (int key, int x, int y) {
+	keystates[key] = false;
 }
 
 void keysAction() {
@@ -96,30 +115,6 @@ void keysAction() {
 		character.resetInterpy();
 		character.setJumped();
 	}
-	if (keystates[GLUT_KEY_DOWN]) {
-		character.movePosY(-1);
-		// character.resetInterpy();
-	}
-}
-
-void keyboard (unsigned char key, int x, int y) {
-	keystates[key] = true;
-	std::cout << "key down: " << key << std::endl;
-}
-
-void specialkeys (int key, int x, int y) {
-	keystates[key] = true;
-	std::cout << "key down: " << key << std::endl;
-}
-
-void keyboardUp (unsigned char key, int x, int y) {
-	keystates[key] = false;
-	std::cout << "key up: " << key << std::endl;
-}
-
-void specialkeysUp (int key, int x, int y) {
-	keystates[key] = false;
-	std::cout << "key up: " << key << std::endl;
 }
 
 void nextFrame(int f) {
@@ -130,37 +125,88 @@ void nextFrame(int f) {
 	character.updatePos();
 	character.updateState();
 	
-	xcamera = character.getPosX();
+	if (character.getPosx() < 0) xcamera = 0;
+	else if (character.getPosx() > x_max*(qnt-1)) xcamera = x_max*(qnt-1);
+	else xcamera = character.getPosx();
 
 	refresh();
 	gluLookAt(xcamera,ycamera,zcamera,xcamera,0,0,0,1,0);
 
+	for (int i = 0; i < qnt; i++) {
+		if (x_min + 18 * i < xcamera and xcamera < x_max + 18 * i){
+			previousScreen = i-1;
+			currentScreen = i;
+			nextScreen = i+1;
+			if (currentScreen > furthestScreen) {
+				furthestScreen = currentScreen;
+				newScreen = true;
+			}
+		}
+	}
+
+	generateScreen(nextScreen);
+	
 	character.animate();
 
 	for (int i = 0; i < coins.size(); i++) {
-		
-		coins[i].animate();
-		
-		if (character.checkcolision(coins[i].getHitbox())) {
-
-			character.addPoint(coins[i].getPoint());
-			coins.erase(coins.begin()+i,coins.begin()+i+1);
-
+		if (coins[i].getPosx() > xcamera + x_min && coins[i].getPosx() < xcamera + x_max) {
+			coins[i].animate();	
+			if (character.checkcolision(coins[i].getHitbox())) {
+				character.addPoint(coins[i].getPoint());
+				coins.erase(coins.begin()+i);
+			}
 		}
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {
-		bullets[i].animate();
-		if (character.checkcolision(bullets[i].getHitbox())) exit(0);
+		if (bullets[i].getPosx() > xcamera + x_min && bullets[i].getPosx() < xcamera + x_max) {
+			bullets[i].animate();
+			if (character.checkcolision(bullets[i].getHitbox())) {
+				character.addPoint(-5);
+				bullets.erase(bullets.begin()+i);
+			}
+		}
 	}
 
 	for (int i = 0; i < holes.size(); i++) {
-		holes[i].animate();
-		if (character.checkcolision(holes[i].getHitbox())) exit(0);
+		if (holes[i].getPosx() > xcamera + x_min && holes[i].getPosx() < xcamera + x_max) {
+			holes[i].animate();
+			if (character.checkcolision(holes[i].getHitbox())) {
+				character.addPoint(-5);
+				holes.erase(holes.begin()+i);
+			}
+		}
 	}
+
+	if (character.getPoints() < 0 || character.getPosx() > xcamera + x_max) exit(0);
 
 	glutPostRedisplay();
     glutTimerFunc(16,nextFrame,0);
+}
+
+void generateScreen(int screen) {
+	if (newScreen) {
+		newScreen = false;
+
+		int x, y;
+
+		coinsNumber = 1 + std::rand() % 5;
+		for (int i = 0; i < coinsNumber; i++) {
+			x = x_min + 18 * screen + std::rand() % (int)(2*x_max);
+			y = -(std::rand() % 9);
+			int p = std::rand() % 4;
+			coins.push_back(Coin(x,y,9,p));
+		}
+
+		x = x_min + 18 * screen + std::rand() % (int)(2*x_max);
+		int aux = std::rand() % 10;
+		if (aux < 5) y = -4;
+		else y = -8;
+		bullets.push_back(Bullet(x,y,9));
+
+		x = x_min + 18 * screen + std::rand() % (int)(2*x_max);
+		holes.push_back(Hole(x,-10,0.5));
+	}
 }
 
 void refresh() {

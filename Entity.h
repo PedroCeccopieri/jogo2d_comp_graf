@@ -28,6 +28,14 @@ class Entity {
             posz = z;
         }
 
+        float getPosx() {
+            return posx;
+        }
+
+        float getPosy() {
+            return posy;
+        }
+
         double* getHitbox() {
             return hitbox;
         }
@@ -91,15 +99,6 @@ class Entity {
                 hitbox[c] = 0.5 * i * wHitbox * scale + posx;
                 hitbox[c+1] = 0.5 * j * hHitbox * scale + posy;
                 hitbox[c+2] = 0.5 * k * dHitbox * scale + posz;
-
-                // std::cout << "c:" << c << ' ' << (c+1)/3 << std::endl;
-                // std::cout << "d:" << d << ',' << d+1 << ',' << d+2 << std::endl;
-                // std::cout << "i,j,k:" << i << ',' << j << ',' << k << std::endl;
-                // std::cout << std::endl;
-
-                // for (int i = 0; i < 12; i += 3) std::cout << hitbox[i] << ',' << hitbox[i+1] << ',' << hitbox[i+2] << std::endl;
-                // std::cout << std::endl;
-
             }
         }
 
